@@ -1503,6 +1503,13 @@ private:
         }
         else if (RAPIDJSON_LIKELY(s.Peek() >= '1' && s.Peek() <= '9')) {
             i = static_cast<unsigned>(s.TakePush() - '0');
+#if RAPIDJSON_FAST32
+            // the first (non-zero) digit is significant too - not counting it let the fraction
+            // loop below pack 10 digits into the 32-bit significand, which wrapped silently:
+            // 46.273834228515625 came out as 3.32 (anything from 42.95 with 8+ decimals,
+            // and 4.29..9.99 with 9+ decimals)
+            significandDigit = 1;
+#endif
 
             if (minus)
                 while (RAPIDJSON_LIKELY(s.Peek() >= '0' && s.Peek() <= '9')) {
